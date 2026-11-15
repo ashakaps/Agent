@@ -1,0 +1,24 @@
+# Локальное Python-окружение
+.venv
+# История git внутри образа не нужна
+.git
+# Workflow-файлы CI/CD в контейнере не запускаются
+.github
+# Кеши Python и pytest
+__pycache__
+*.pyc
+.pytest_cache
+# Тесты в образ не нужны
+tests
+# Секреты внутрь образа не тащим
+.env
+.env.*
+# Документация и описание стека — для людей, не для контейнера
+README.md
+docker-compose.yml
+screenshots
+# Данные и ноутбуки: Dockerfile копирует только app/.
+# qdrant_data может весить сотни МБ и без этой строки уходит в контекст сборки.
+qdrant_data
+notebooks
+data
