@@ -61,10 +61,15 @@ def format_docs_with_sources(docs: list[Document]) -> str:
     return "\n\n---\n\n".join(lines)
 
 
+def build_retriever():
+    """Собрать только retriever (без LLM) — для инструментов агента."""
+    vectorstore = get_vectorstore()
+    return vectorstore.as_retriever(search_kwargs={"k": settings.top_k})
+
+
 def build_rag_chain():
     """Собрать LCEL-цепочку и вернуть пару (chain, retriever)."""
-    vectorstore = get_vectorstore()
-    retriever = vectorstore.as_retriever(search_kwargs={"k": settings.top_k})
+    retriever = build_retriever()
     llm = get_llm()
     prompt = ChatPromptTemplate.from_template(SYSTEM_PROMPT)
 

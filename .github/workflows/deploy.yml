@@ -38,11 +38,27 @@ jobs:
           script: |
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull ${{ env.IMAGE }}:latest
+
+            # Общая сеть: приложение обращается к Qdrant по имени контейнера.
+            docker network create mentoring-net 2>/dev/null || true
+
+            # Qdrant поднимаем, только если его ещё нет; данные — на диске сервера.
+            docker inspect qdrant >/dev/null 2>&1 || docker run -d \
+              --name qdrant \
+              --restart unless-stopped \
+              --network mentoring-net \
+              -v /opt/qdrant_data:/qdrant/storage \
+              qdrant/qdrant:v1.12.0
+            docker network connect mentoring-net qdrant 2>/dev/null || true
+
             docker rm -f api-task 2>/dev/null || true
             docker run -d \
               --name api-task \
               --restart unless-stopped \
+              --network mentoring-net \
               -p 127.0.0.1:8000:8000 \
               -e LOG_LEVEL=INFO \
+              -e QDRANT_URL=http://qdrant:6333 \
+              -e LLM_API_KEY='${{ secrets.LLM_API_KEY }}' \
               ${{ env.IMAGE }}:latest
             docker logout ghcr.io
